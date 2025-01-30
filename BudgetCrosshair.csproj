@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\CrosshairExample_1.png" />
+    <None Remove="Resources\CrosshairExample_2.png" />
+    <None Remove="Resources\CrosshairTest.png" />
+    <None Remove="Resources\Crosshair_1.png" />
+    <None Remove="Resources\Crosshair_2.png" />
+    <None Remove="Resources\Crosshair_3.png" />
+    <None Remove="Resources\GlobalKeyboardHook.png" />
+    <None Remove="Resources\LogoIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Crosshair_1.png" />
+    <EmbeddedResource Include="Resources\Crosshair_2.png" />
+    <EmbeddedResource Include="Resources\Crosshair_3.png" />
+    <EmbeddedResource Include="Resources\GlobalKeyboardHook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="MouseKeyHook" Version="5.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LogoIcon.ico" />
+  </ItemGroup>
+
+</Project>
