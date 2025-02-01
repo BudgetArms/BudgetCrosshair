@@ -69,9 +69,9 @@ namespace CrosshairWindow.Converters
     }
 
 
-    public static class StringToImageConverter
+    public static class StringImageConverter
     {
-        public static Bitmap? Base64StringToBitmap(string base64Image)
+        public static Bitmap? Base64ToBitmap(string base64Image)
         {
             if (string.IsNullOrEmpty(base64Image))
                 return null;
@@ -105,6 +105,30 @@ namespace CrosshairWindow.Converters
             {
                 // Convert the MemoryStream to a Bitmap
                 return new Bitmap(ms);
+            }
+        }
+
+        public static WriteableBitmap? Base64ToWriteableBitmap(string base64String)
+        {
+            if (string.IsNullOrEmpty(base64String))
+                return null;
+
+            // Remove "data:image/png;base64," if present
+            string base64Data = base64String.Contains(",") ? base64String.Split(',')[1] : base64String;
+
+            // Convert Base64 string to byte array
+            byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+            using (var ms = new MemoryStream(imageBytes))
+            {
+                var bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = ms;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze(); // Make it thread-safe
+
+                return new WriteableBitmap(bitmapImage);
             }
         }
     }

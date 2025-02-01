@@ -33,10 +33,20 @@
                     ToolTipText="Crosshair App"
                     ContextMenu="{StaticResource TrayMenu}"/>
 
-        <Image Source="{Binding CurrentCrosshair.ImageUrl, Converter={StaticResource base64ToImage}}"
+        <Image Source="{Binding CurrentCrosshair.ImageUrl}"
                Stretch="None"
                IsHitTestVisible="False"
-               />
+               >
+            <Image.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform     ScaleX="{Binding CurrentCrosshair.Scale}" 
+                                        ScaleY="{Binding CurrentCrosshair.Scale}"/>
+                    <RotateTransform    Angle="{Binding CurrentCrosshair.Angle}"/>
+                    <TranslateTransform X="{Binding CurrentCrosshair.OffsetX}" 
+                                        Y="{Binding CurrentCrosshair.OffsetY}"/>
+                </TransformGroup>
+            </Image.RenderTransform>
+        </Image>
 
         <TextBlock FontSize="20" 
                    HorizontalAlignment="Center" 

@@ -49,9 +49,6 @@ namespace CrosshairTest2.ViewModel
 
 
 
-  
-
-
 
         public CrosshairVM()
         {

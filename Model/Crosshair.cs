@@ -18,6 +18,8 @@ using Pen   = System.Drawing.Pen;
 using Rectangle = System.Drawing.Rectangle;
 using System.Diagnostics.Eventing.Reader;
 using System.ComponentModel.DataAnnotations;
+using System.Windows.Media.Imaging;
+using System.Windows;
 
 // BudgetArms
 
@@ -36,11 +38,23 @@ namespace CrosshairWindow.Model
 
         //private readonly CrosshairSettings _crosshairSettings = new CrosshairSettings();
 
+        // window settings
+        private static int _width = 1000;
+        private static int _height = 1000;
+        private static int stride = _width * 4;
+        private static int bufferSize = _width * _height * 4;
+        private static byte[] pixels = new byte[bufferSize];
+
+        private Graphics    _graphicsUpdate;
+        private Bitmap      _bitmapUpdate;
+
+
+
         // Crosshair Settings
         private float _scale    = 1F;
         private float _opacity  = 1F;
         private float _angle    = 0F;
-        private string _imageUrl = "";
+        private WriteableBitmap? _imageUrl = new(1000, 1000, 100, 100, PixelFormats.Bgra32, null);
         private Bitmap? _crosshairBitmap = null;
 
 
@@ -81,13 +95,12 @@ namespace CrosshairWindow.Model
             {
                 _crosshairBitmap = value;
                 Console.WriteLine("CROSSHAIRBITMAP SETTER");
-                string test = ImageToBase64Converter.BitmapToBase64String(value);
                 OnPropertyChanged();
             }
         }
 
         // Image shown on screen
-        public string ImageUrl
+        public WriteableBitmap? ImageUrl
         {
             get
             {
@@ -108,7 +121,7 @@ namespace CrosshairWindow.Model
         }
 
         public Crosshair(string name, string crosshairSettings, string crosshairImage = "") :
-            this(name, crosshairSettings, StringToImageConverter.Base64StringToBitmap(crosshairImage))
+            this(name, crosshairSettings, StringImageConverter.Base64ToBitmap(crosshairImage))
         {
             Console.WriteLine($"Crosshair Created with string");
 
@@ -121,6 +134,11 @@ namespace CrosshairWindow.Model
             Name = name;
             CrosshairBitmap = crosshairBitmap;
             SetSettings(crosshairSettings);
+
+            _bitmapUpdate = new Bitmap(_width, _height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            _graphicsUpdate = Graphics.FromImage(_bitmapUpdate);
+            _graphicsUpdate.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
             Draw();
         }
 
@@ -154,52 +172,30 @@ namespace CrosshairWindow.Model
                     // T R S
 
                     // T
-                    graphics.TranslateTransform(OffsetX, OffsetY);
+                    //graphics.TranslateTransform(OffsetX, OffsetY);
                     // R
-                    graphics.RotateTransform(Angle);
+                    //graphics.RotateTransform(Angle);
                     // S
-                    graphics.ScaleTransform(Scale, Scale);
+                    //graphics.ScaleTransform(Scale, Scale);
 
                     if (UsesImage)
                     {
-                        //if (CrosshairBitmap != null)
-                            //graphics.DrawImage(CrosshairBitmap, new Point(-(int)(CrosshairBitmap.Width / 2F), -(int)(CrosshairBitmap.Height / 2F)));
+                        if (CrosshairBitmap != null)
+                            graphics.DrawImage(CrosshairBitmap, new Point(-(int)(CrosshairBitmap.Width / 2F), -(int)(CrosshairBitmap.Height / 2F)));
                     }
                     else
                     {
-                        //CenterDot.Draw(graphics);
-                        //Lines.Draw(graphics);
+                        CenterDot.Draw(graphics);
+                        Lines.Draw(graphics);
                     }
-
-                    Color color = Color.Yellow;
-                    Brush brush = new SolidBrush(color);
-
-                    //Origin = centriod of equilateral triangle
-                    //centriod to bottom Y: y -= tan(30) * width / 2
-                    //centriod to top    Y: y += width / ( 3^(1/2) )
-                    // TopY = 2 * BottomY
-
-                    float Length = 100;
-                    float topY = Length / (float)Math.Sqrt(3.0F);
-                    float bottomY = 0.5F * topY;
-
-                    var points = new List<Point>
-                            {
-                                new(-(int)(Length / 2F), -(int)bottomY),
-                                new( (int)(Length / 2F), -(int)bottomY),
-                                new(         0,  (int)topY)
-                            };
-
-
-                    graphics.FillPolygon(brush, points.ToArray());
 
 
                     // S
-                    graphics.ScaleTransform(1F / Scale, 1F / Scale);
+                    //graphics.ScaleTransform(1F / Scale, 1F / Scale);
                     // R
-                    graphics.RotateTransform(-Angle);
+                    //graphics.RotateTransform(-Angle);
                     // T
-                    graphics.TranslateTransform(-OffsetX, -OffsetY);
+                    //graphics.TranslateTransform(-OffsetX, -OffsetY);
 
 
 
@@ -211,7 +207,7 @@ namespace CrosshairWindow.Model
                         var base64String = Convert.ToBase64String(memoryStream.GetBuffer());
 
                         // Use the base64String as the ImageUrl (this can be used as an ImageSource in XAML)
-                        ImageUrl = $"data:image/png;base64,{base64String}";
+                        //ImageUrl = new();
                     }
 
                 }
@@ -259,10 +255,15 @@ namespace CrosshairWindow.Model
         // Get Stored Crosshair
         public static Bitmap GetStoredCrosshair()
         {
+            //WriteableBitmap test = new(1000, 1000, 100, 100, PixelFormats.Bgra32, null);
+
+
+
             if (File.Exists(CrosshairFile))
                 return new Bitmap(CrosshairFile);
             else
                 return StoreEmptyCrosshair();
+
         }
 
         // Store Crosshair with imagePath
