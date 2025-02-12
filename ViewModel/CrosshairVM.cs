@@ -82,32 +82,33 @@ namespace CrosshairTest2.ViewModel
 
         private void InitializeCrosshair()
         {
-			Crosshair crossSettings = new()
+			CurrentCrosshair = new()
+			//Crosshair crossSettings = new()
 			{
 				Name = "COOL CROSSHAIR",
 
-				Scale = 5,
+				Scale = 1F,
 				Opacity = 1F,
 				Angle = 0F,
-				RotationSpeed = 100F,
+				RotationSpeed = 0F,
 				OffsetX = 0,
 				OffsetY = 0,
 				Visible = true,
-				UsesImage = true,
+				UsesImage = false,
 
 				CenterDot = new()
 				{
-					Length = 3,
-					Height = 3,
+					Length = 4,
+					Height = 4,
 					Shape = CenterDot.ShapeEnum.Circle,
-					Color = System.Drawing.Color.Red,
-					Opacity = 1F,
+					Color = Drawing.Color.DarkRed,
+					Opacity = 0.2F,
 					Angle = 0F,
 					Outline = new()
 					{
-						Thickness = 1,
-						Color = System.Drawing.Color.Green,
-						Opacity = 1F,
+						Thickness = 2,
+						Color = Drawing.Color.Black,
+						Opacity = 0.2F,
 						Visible = true
 					},
 					OffsetX = 0,
@@ -117,34 +118,39 @@ namespace CrosshairTest2.ViewModel
 
 				Lines = new()
 				{
-					Thickness = 5,
-					Length = 50,
+					Thickness = 3,
+					Length = 7,
 					Shape = Lines.ShapeEnum.Rectangle,
-					Color = System.Drawing.Color.Red,
-					Opacity = 1F,
-					Angle = 20F,
-					GapX = 10,
-					GapY = 10,
-					OffsetX = 50,
+					Color = ColorTranslator.FromHtml("#FF0000"),
+					Opacity = 0.4F,
+					Angle = 0F,
+					GapX = 5,
+					GapY = 100, // does nothing
+					OffsetX = 0,
 					OffsetY = 0,
 					Visible = true,
 					Outline = new()
 					{
 						Thickness = 2,
-						Color = System.Drawing.Color.Black,
-						Opacity = 1F,
+						Color = Drawing.Color.Black,
+						Opacity = 0.2F,
 						Visible = true
 					},
 				},
 
-				CrosshairBitmap = null,
+				CrosshairBitmap = new("C:\\Users\\budget\\Projects\\BudgetCrosshair\\Resources\\Crosshair_1.png"),
 
 			};
 
-			crossSettings.Lines.SetDirection(Lines.Direction.LeftUp, false);
-			crossSettings.Lines.ToggleDirection(Lines.Direction.Up);
+			CurrentCrosshair.Lines.SetDirection(Lines.Direction.LeftUp, false);
+			CurrentCrosshair.Lines.SetDirection(Lines.Direction.LeftDown, false);
+			CurrentCrosshair.Lines.SetDirection(Lines.Direction.RightUp, false);
+			CurrentCrosshair.Lines.SetDirection(Lines.Direction.RightDown, false);
 
-			
+			//crossSettings.Lines.SetDirection(Lines.Direction.LeftUp, false);
+			//crossSettings.Lines.ToggleDirection(Lines.Direction.Up);
+
+			CurrentCrosshair.Draw();	
 			// old settings
 			/*
 			
@@ -215,8 +221,9 @@ namespace CrosshairTest2.ViewModel
 
 			var crosshair = new Bitmap(stream);
 
-			string crosshairSettings = crossSettings.GetSettings();
-			CurrentCrosshair = new Crosshair("MyCrosshair", crossSettings.GetSettings(), crosshair);
+			//CurrentCrosshair = crossSettings;
+			//string crosshairSettings = crossSettings.GetSettings();
+			//CurrentCrosshair = new Crosshair("MyCrosshair", crossSettings.GetSettings(), crosshair);
             //CurrentCrosshair = new Crosshair("MyCrosshair", crossSettings.GetSettings(), "Resources/Crosshair_1.png");
 
 

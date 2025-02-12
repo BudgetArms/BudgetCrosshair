@@ -20,6 +20,8 @@ using System.Diagnostics.Eventing.Reader;
 using System.ComponentModel.DataAnnotations;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 // BudgetArms
 
@@ -39,11 +41,14 @@ namespace CrosshairWindow.Model
         //private readonly CrosshairSettings _crosshairSettings = new CrosshairSettings();
 
         // window settings
-        private static int _width = 1000;
-        private static int _height = 1000;
-        private static int stride = _width * 4;
-        private static int bufferSize = _width * _height * 4;
-        private static byte[] pixels = new byte[bufferSize];
+        private static int _width       = 1000;
+        private static int _height      = 1000;
+        private static int stride       = _width * 4;
+        private static int bufferSize   = _width * _height * 4;
+        private static byte[] pixels    = new byte[bufferSize];
+
+        private static Int32Rect intRect   = new(0, 0, _width, _height);
+        private static Rectangle rect = new(0, 0, _width, _height);
 
         private Graphics    _graphicsUpdate;
         private Bitmap      _bitmapUpdate;
@@ -54,7 +59,8 @@ namespace CrosshairWindow.Model
         private float _scale    = 1F;
         private float _opacity  = 1F;
         private float _angle    = 0F;
-        private WriteableBitmap? _imageUrl = new(1000, 1000, 100, 100, PixelFormats.Bgra32, null);
+        private int _offsetY    = 0;
+        private WriteableBitmap? _imageUrl = new(1000, 1000, 96, 96, PixelFormats.Bgra32, null);
         private Bitmap? _crosshairBitmap = null;
 
 
@@ -76,9 +82,14 @@ namespace CrosshairWindow.Model
         public float RotationSpeed { get; set; } = 0F;
 
         public int OffsetX { get; set; } = 0;
-        public int OffsetY { get; set; } = 0;
+        public int OffsetY
+        {
+            get { return -_offsetY; }
+            set { _offsetY = value; }
+        }
         public bool Visible { get; set; } = true;
         public bool UsesImage { get; set; } = false; 
+
 
         // no image:
         public CenterDot CenterDot { get; set; } = new();
@@ -138,8 +149,6 @@ namespace CrosshairWindow.Model
             _bitmapUpdate = new Bitmap(_width, _height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             _graphicsUpdate = Graphics.FromImage(_bitmapUpdate);
             _graphicsUpdate.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-            Draw();
         }
 
 
@@ -152,67 +161,118 @@ namespace CrosshairWindow.Model
             Angle += RotationSpeed * elapsedSec;
 
             Draw();
-
         }
 
-        private void Draw()
+        public void Draw()
         {
             // Logic to render CrosshairSettings to a bitmap image
-            const int width  = 1000;
+            const int width = 1000;
             const int height = 1000;
 
-            using (var bitmap = new Bitmap(width, height))
+            if (_bitmapUpdate == null || _graphicsUpdate == null || ImageUrl == null)
+                return;
+
+            // Clear graphics
+            _graphicsUpdate.Clear(Color.Transparent);
+
+            //this should now be done by the RenderTransform in xaml, nvm
+            // Make everything (0, 0) center
+            _graphicsUpdate.TranslateTransform(width / 2, height / 2);
+            //_graphicsUpdate.TranslateTransform(100, 0);
+
+            // Draw the crosshair shapes (center dot, lines, etc.) on the bitmap
+            // T R S
+
+            // T
+            //graphics.TranslateTransform(OffsetX, OffsetY);
+            // R
+            //graphics.RotateTransform(Angle);
+            // S
+            //graphics.ScaleTransform(Scale, Scale);
+
+            ///*
+
+            if (UsesImage)
             {
-                using (Graphics graphics = Graphics.FromImage(bitmap))
-                {
-                    // Make everything (0, 0) center
-                    graphics.TranslateTransform(width / 2, height / 2);
-
-                    // Draw the crosshair shapes (center dot, lines, etc.) on the bitmap
-                    // T R S
-
-                    // T
-                    //graphics.TranslateTransform(OffsetX, OffsetY);
-                    // R
-                    //graphics.RotateTransform(Angle);
-                    // S
-                    //graphics.ScaleTransform(Scale, Scale);
-
-                    if (UsesImage)
-                    {
-                        if (CrosshairBitmap != null)
-                            graphics.DrawImage(CrosshairBitmap, new Point(-(int)(CrosshairBitmap.Width / 2F), -(int)(CrosshairBitmap.Height / 2F)));
-                    }
-                    else
-                    {
-                        CenterDot.Draw(graphics);
-                        Lines.Draw(graphics);
-                    }
-
-
-                    // S
-                    //graphics.ScaleTransform(1F / Scale, 1F / Scale);
-                    // R
-                    //graphics.RotateTransform(-Angle);
-                    // T
-                    //graphics.TranslateTransform(-OffsetX, -OffsetY);
-
-
-
-
-                    // Save bitmap to a MemoryStream, then convert to Base64 or save it as a file
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        bitmap.Save(memoryStream, ImageFormat.Png);
-                        var base64String = Convert.ToBase64String(memoryStream.GetBuffer());
-
-                        // Use the base64String as the ImageUrl (this can be used as an ImageSource in XAML)
-                        //ImageUrl = new();
-                    }
-
-                }
-
+                if (CrosshairBitmap != null)
+                    _graphicsUpdate.DrawImage(CrosshairBitmap, new Point(-(int)(CrosshairBitmap.Width / 2F), 
+                                                                         -(int)(CrosshairBitmap.Height / 2F)));
             }
+            else
+            {
+                CenterDot.Draw(_graphicsUpdate);
+                Lines.Draw(_graphicsUpdate);
+            }
+
+            //*/
+
+            // Test drawing: draw a small red rectangle at the center.
+            using (Brush brush = new SolidBrush(Color.Red))
+            {
+                //_graphicsUpdate.FillRectangle(brush, -100, -100, 200, 200);
+            }
+
+
+            // S
+            //graphics.ScaleTransform(1F / Scale, 1F / Scale);
+            // R
+            //graphics.RotateTransform(-Angle);
+            // T
+            //graphics.TranslateTransform(-OffsetX, -OffsetY);
+
+            // locks data and read data from bitmap
+            BitmapData bitmapData = _bitmapUpdate.LockBits(rect, ImageLockMode.ReadOnly, _bitmapUpdate.PixelFormat);
+
+            // Copy bitmapData pixels to pixels
+            Marshal.Copy(bitmapData.Scan0, pixels, 0, bufferSize);
+
+            // unlock bitmap bits
+            _bitmapUpdate.UnlockBits(bitmapData);
+
+            ImageUrl.Lock();
+            ImageUrl.WritePixels(intRect, pixels, bitmapData.Stride, 0);
+
+            ImageUrl.Unlock();
+
+            _graphicsUpdate.ResetTransform();
+
+            /*
+
+            bool test = false;
+            for (int i = 0; i < pixels.Length; ++i)
+            {
+                if (pixels[i] != 0)
+                {
+                    test = true;
+                    Byte test = 
+                    break;
+                }
+            }
+
+            if (test)
+                Console.WriteLine("PIXELS NOT EMPTY");
+            else
+                Console.WriteLine("Pixels Empty");
+            */
+
+
+
+            /*
+            // Save bitmap to a MemoryStream, then convert to Base64 or save it as a file
+            using (var memoryStream = new MemoryStream())
+            {
+                _bitmapUpdate.Save(memoryStream, ImageFormat.Png);
+                var base64String = Convert.ToBase64String(memoryStream.GetBuffer());
+
+                // Use the base64String as the ImageUrl (this can be used as an ImageSource in XAML)
+
+                ImageUrl.WritePixels(new Int32Rect(0, 0, ImageUrl.PixelWidth, ImageUrl.PixelHeight), ))
+                //ImageUrl.ClearValue
+                //ImageUrl.WritePixels()
+            }
+             */
+
+
         }
 
         // Get Stored settings
@@ -631,7 +691,7 @@ namespace CrosshairWindow.Model
             if (Opacity == 0F || Visible == false)
                 return;
 
-            Color colorOpacity = Color.FromArgb((int)(Opacity * 255), Outline.Color);
+            Color colorOpacity = Color.FromArgb((int)(Outline.Opacity * 255), Outline.Color);
             var outlinePen = new Pen(colorOpacity, Outline.Thickness);
             var brush = new SolidBrush(Color);
 
@@ -839,11 +899,11 @@ namespace CrosshairWindow.Model
             //RightUp
 
             // temp
-            foreach (Direction direction in Enum.GetValues(typeof(Direction)))
-                DirectionMap[direction] = true;
+            //foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                //DirectionMap[direction] = true;
 
 
-            Color colorOpacity = Color.FromArgb((int)(Opacity * 255), Outline.Color);
+            Color colorOpacity = Color.FromArgb((int)(Outline.Opacity * 255), Outline.Color);
             var outlinePen = new Pen(colorOpacity, Outline.Thickness);
             //var linesBrush = new SolidBrush(colorOpacity);
 
@@ -851,8 +911,8 @@ namespace CrosshairWindow.Model
             // T R S, T
             // no S bc we dont need / want scaling for this
 
-            // R1, set angle, rotate and thand translate, so that there is not orbiting but just pivoting
-            graphics.RotateTransform(-Angle);
+            // R1, set angle, rotate and and translate, so that there is not orbiting but just pivoting
+            graphics.RotateTransform(Angle);
 
             // T1
             graphics.TranslateTransform(OffsetX, OffsetY);

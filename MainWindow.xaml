@@ -9,9 +9,8 @@
         Title="Crosshair Settings"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         WindowState="Maximized" ShowInTaskbar="False"
-        IsHitTestVisible="False"
+        Topmost="True" IsHitTestVisible="False"
         >
-        <!--Topmost="True" WindowState="Maximized" ShowInTaskbar="False" -->
 
     <Window.Content>
         <view:CrosshairView/>

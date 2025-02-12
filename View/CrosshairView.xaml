@@ -36,7 +36,10 @@
         <Image Source="{Binding CurrentCrosshair.ImageUrl}"
                Stretch="None"
                IsHitTestVisible="False"
+               RenderTransformOrigin="0.5,0.5"
                >
+                    <!--
+                    !-->
             <Image.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform     ScaleX="{Binding CurrentCrosshair.Scale}" 
