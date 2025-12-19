@@ -1,25 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CrosshairWindow.Model;
-
-using System.Windows.Input;
-using System.Diagnostics;
-using System.Windows.Media;
 using Gma.System.MouseKeyHook;
-
-using Keys = System.Windows.Forms.Keys;
-using KeyEventArgs		= System.Windows.Forms.KeyEventArgs;
-using KeyPressEventArgs = System.Windows.Forms.KeyPressEventArgs;
+using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Windows;
-using System.Runtime.CompilerServices;
 using System.Drawing.Imaging;
-using Drawing = System.Drawing;
-using System.Windows.Forms;
-using System.Windows.Shapes;
+using System.IO;
 using System.Reflection;
-//using Utilities;
+using System.Windows.Media;
+using Drawing = System.Drawing;
+using KeyEventArgs		= System.Windows.Forms.KeyEventArgs;
+using Keys = System.Windows.Forms.Keys;
 
 
 namespace CrosshairTest2.ViewModel
@@ -85,7 +76,7 @@ namespace CrosshairTest2.ViewModel
 			CurrentCrosshair = new()
 			//Crosshair crossSettings = new()
 			{
-				Name = "COOL CROSSHAIR",
+				CrosshairName = "COOL CROSSHAIR",
 
 				Scale = 1F,
 				Opacity = 1F,
@@ -98,17 +89,17 @@ namespace CrosshairTest2.ViewModel
 
 				CenterDot = new()
 				{
-					Length = 4,
-					Height = 4,
+					Length = 2,
+					Height = 2,
 					Shape = CenterDot.ShapeEnum.Circle,
 					Color = Drawing.Color.DarkRed,
-					Opacity = 0.2F,
+					Opacity = 0.1F,
 					Angle = 0F,
 					Outline = new()
 					{
-						Thickness = 2,
+						Thickness = 1,
 						Color = Drawing.Color.Black,
-						Opacity = 0.2F,
+						Opacity = 0.1F,
 						Visible = true
 					},
 					OffsetX = 0,
@@ -233,9 +224,8 @@ namespace CrosshairTest2.ViewModel
 
 		private void Update(object? sender, EventArgs e)
         {
-			float elapsedSec = _stopwatch.ElapsedMilliseconds / 1000F;
+			float elapsedSec = _stopwatch.ElapsedMilliseconds / 1000f;
 
-			// do shit here
 			CurrentCrosshair?.Update(elapsedSec);
 
 
@@ -251,10 +241,13 @@ namespace CrosshairTest2.ViewModel
 				System.Windows.Application.Current.Dispatcher.Invoke(() =>
 				{
 
+
 					// do nothing
-					var openFileDialog = new Microsoft.Win32.OpenFileDialog();
-					openFileDialog.Filter = "Image Files|*.bmp;*.png;*.jpg;*.jpeg|All Files|*.*";
-					openFileDialog.Title = "Select A Crosshair";
+					var openFileDialog = new Microsoft.Win32.OpenFileDialog
+					{
+						Filter = "Image Files|*.bmp;*.png;*.jpg;*.jpeg|All Files|*.*",
+						Title = "Select A Crosshair"
+					};
 
 					bool? result = openFileDialog.ShowDialog();
 
@@ -288,6 +281,8 @@ namespace CrosshairTest2.ViewModel
 						}
 					}
 
+
+
                 });
 			});
 
@@ -309,7 +304,7 @@ namespace CrosshairTest2.ViewModel
 		
 			
 			Console.WriteLine("KeyDown: {0}", e.KeyCode);
-			//KeyDisplay = e.KeyCode.ToString(); // Hidden bc build 
+			// KeyDisplay = e.KeyCode.ToString(); // Hidden bc build 
 
 
             if (_pressedKeys.Contains(Keys.ControlKey) && _pressedKeys.Contains(Keys.Alt))

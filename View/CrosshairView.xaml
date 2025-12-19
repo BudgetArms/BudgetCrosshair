@@ -31,6 +31,7 @@
     <Grid Background="Transparent">
         <tb:TaskbarIcon x:Name="MyNotifyIcon"
                     ToolTipText="Crosshair App"
+                    IconSource="../Resources/LogoIcon.ico"
                     ContextMenu="{StaticResource TrayMenu}"/>
 
         <Image Source="{Binding CurrentCrosshair.ImageUrl}"

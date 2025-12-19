@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
+﻿using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Media;
 
@@ -16,36 +11,32 @@ using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
 using Pen   = System.Drawing.Pen;
 using Rectangle = System.Drawing.Rectangle;
-using System.Diagnostics.Eventing.Reader;
-using System.ComponentModel.DataAnnotations;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
+
 
 // BudgetArms
-
-
 namespace CrosshairWindow.Model
 {
-
-    class Crosshair : ObservableObject
+    internal class Crosshair : ObservableObject
     {
         //  Folder/File locations
-        private static string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BudgetArmsCrosshairOverlay");
-        private static string CrosshairFile = Path.Combine(AppDataFolder, "Crosshair.png");
-        private static string SettingsFile = Path.Combine(AppDataFolder, "Settings.txt");
+        private static readonly string BudgetArmsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "BudgetArmsCrosshair");
+        private static string CrosshairFolder = Path.Combine(BudgetArmsFolder, "Crosshairs");
+        private static string DefaultCrosshairFile = Path.Combine(CrosshairFolder, "Crosshair.png");
+        private static readonly string SettingsFile = Path.Combine(BudgetArmsFolder, "Settings.txt");
 
-        public string Name { get; set; } = "DefaultCrosshair";
+        public string CrosshairName { get; set; } = "DefaultCrosshair";
 
         //private readonly CrosshairSettings _crosshairSettings = new CrosshairSettings();
 
         // window settings
-        private static int _width       = 1000;
-        private static int _height      = 1000;
-        private static int stride       = _width * 4;
-        private static int bufferSize   = _width * _height * 4;
-        private static byte[] pixels    = new byte[bufferSize];
+        private static readonly int _width      = 200;
+        private static readonly int _height     = 200;
+        private static readonly int stride      = _width * 4;
+        private static readonly int bufferSize  = _width * _height * 4;
+        private static byte[] pixels            = new byte[bufferSize];
 
         private static Int32Rect intRect   = new(0, 0, _width, _height);
         private static Rectangle rect = new(0, 0, _width, _height);
@@ -60,7 +51,7 @@ namespace CrosshairWindow.Model
         private float _opacity  = 1F;
         private float _angle    = 0F;
         private int _offsetY    = 0;
-        private WriteableBitmap? _imageUrl = new(1000, 1000, 96, 96, PixelFormats.Bgra32, null);
+        private WriteableBitmap? _imageUrl = new(_width, _height, 96, 96, PixelFormats.Bgra32, null);
         private Bitmap? _crosshairBitmap = null;
 
 
@@ -127,6 +118,7 @@ namespace CrosshairWindow.Model
 
         // load settings.txt and crosshair.png
         public Crosshair() :
+            
             this("CrosshairName", GetStoredSettings(), GetStoredCrosshair())
         {
         }
@@ -142,7 +134,7 @@ namespace CrosshairWindow.Model
         {
             Console.WriteLine($"Crosshair {name} Created!");
 
-            Name = name;
+            CrosshairName = name;
             CrosshairBitmap = crosshairBitmap;
             SetSettings(crosshairSettings);
 
@@ -166,9 +158,6 @@ namespace CrosshairWindow.Model
         public void Draw()
         {
             // Logic to render CrosshairSettings to a bitmap image
-            const int width = 1000;
-            const int height = 1000;
-
             if (_bitmapUpdate == null || _graphicsUpdate == null || ImageUrl == null)
                 return;
 
@@ -177,7 +166,7 @@ namespace CrosshairWindow.Model
 
             //this should now be done by the RenderTransform in xaml, nvm
             // Make everything (0, 0) center
-            _graphicsUpdate.TranslateTransform(width / 2, height / 2);
+            _graphicsUpdate.TranslateTransform(_width / 2, _height / 2);
             //_graphicsUpdate.TranslateTransform(100, 0);
 
             // Draw the crosshair shapes (center dot, lines, etc.) on the bitmap
@@ -315,12 +304,9 @@ namespace CrosshairWindow.Model
         // Get Stored Crosshair
         public static Bitmap GetStoredCrosshair()
         {
-            //WriteableBitmap test = new(1000, 1000, 100, 100, PixelFormats.Bgra32, null);
 
-
-
-            if (File.Exists(CrosshairFile))
-                return new Bitmap(CrosshairFile);
+            if (File.Exists(DefaultCrosshairFile))
+                return new Bitmap(DefaultCrosshairFile);
             else
                 return StoreEmptyCrosshair();
 
@@ -339,7 +325,7 @@ namespace CrosshairWindow.Model
 
             using (var bitmap = new Bitmap(imagePath))
             {
-                bitmap.Save(CrosshairFile, ImageFormat.Png);
+                bitmap.Save(DefaultCrosshairFile, ImageFormat.Png);
             }
 
 
@@ -377,17 +363,14 @@ namespace CrosshairWindow.Model
         // Store Crosshair with image (Bitmap)
         public static void StoreCrosshair(Bitmap image)
         {
-            // Save Crossahir
-            image.Save(CrosshairFile, ImageFormat.Png); 
+            // Save Crosshair
+            image.Save(DefaultCrosshairFile, ImageFormat.Png); 
         }
 
         // Store Empty Crosshair
         private static Bitmap StoreEmptyCrosshair()
         {
-            int width = 1000;
-            int height = 1000;
-
-            using (var bitmap = new Bitmap(width, height))
+            using (var bitmap = new Bitmap(_width, _height))
             {
                 using (Graphics graphics = Graphics.FromImage(bitmap))
                 {
@@ -396,13 +379,13 @@ namespace CrosshairWindow.Model
                     graphics.Clear(Color.Transparent); // Transparent background
 
                     // Make everything (0, 0) center
-                    graphics.TranslateTransform(width / 2, height / 2);
+                    graphics.TranslateTransform(_width / 2, _height / 2);
 
                     graphics.DrawRectangle(new System.Drawing.Pen(brush, 2), new Rectangle(-40, -40, 80, 80));
 
                 }
 
-                bitmap.Save(CrosshairFile, ImageFormat.Png);
+                bitmap.Save(DefaultCrosshairFile, ImageFormat.Png);
                 return bitmap;
                
             }
@@ -575,7 +558,7 @@ namespace CrosshairWindow.Model
             Lines.OffsetX   = int.Parse(values[i++]);
             Lines.OffsetY   = int.Parse(values[i++]);
             Lines.Visible   = values[i++] == "1";
-            // should look like 00000000 ( 8 bools )
+            // should look like 00000000 ( 8 booleans )
             string directionMap = values[i++];
             var directions = Enum.GetValues(typeof(Lines.Direction)).Cast<Lines.Direction>().ToArray();
 
@@ -709,11 +692,11 @@ namespace CrosshairWindow.Model
                         float bottomY = 0.5F * topY;
 
                         var points = new List<Point>
-                    {
-                        new(-(int)(Length / 2.0F),  -(int)bottomY),
-                        new( (int)(Length / 2.0F),  -(int)bottomY),
-                        new(                   0,   (int)topY)
-                    };
+                        {
+                            new(-(int)(Length / 2.0F),  -(int)bottomY),
+                            new( (int)(Length / 2.0F),  -(int)bottomY),
+                            new(                   0,   +(int)topY)
+                        };
 
 
                         foreach (var point in points)
@@ -747,8 +730,8 @@ namespace CrosshairWindow.Model
 
                         var rectangles = new List<Rectangle>()
                     {
-                        new((int)(-Length  / 2.0F), (int)(-Height / 2.0F), Length, Height),
-                        new((int)(-Height / 2.0F), (int)(-Length  / 2.0F), Height, Length)
+                        new((int)(-Length / 2.0f), (int)(-Height / 2.0f), Length, Height),
+                        new((int)(-Height / 2.0f), (int)(-Length / 2.0f), Height, Length)
                     };
 
                         foreach (var rectangle in rectangles)
@@ -765,15 +748,16 @@ namespace CrosshairWindow.Model
                     break;
                 case ShapeEnum.Circle:
                     {
-                        var rectangleElipse = new Rectangle((int)(-Length / 2.0F), (int)(-Height / 2.0F), Length, Height);
+                        Rectangle rectangleEllipse = new((int)(-Length / 2.0f), (int)(-Height / 2.0f), Length, Height);
+                        
 
-                        rectangleElipse.Offset(OffsetX, OffsetY);
+                        rectangleEllipse.Offset(OffsetX, OffsetY);
 
 
-                        graphics.FillEllipse(brush, rectangleElipse);
+                        graphics.FillEllipse(brush, rectangleEllipse);
 
                         if (Outline.Visible)
-                            graphics.DrawEllipse(outlinePen, rectangleElipse);
+                            graphics.DrawEllipse(outlinePen, rectangleEllipse);
 
                     }
                     break;
@@ -806,12 +790,12 @@ namespace CrosshairWindow.Model
             RightUp
         }
 
-        private int _length = 7;
-        private int _thickness = 3;
-        private float _opacity = 1F;
-        private float _angle = 0F;
-        private int _gapX = 0;
-        private int _gapY = 0;
+        private int _length     = 7;
+        private int _thickness  = 3;
+        private float _opacity  = 1f;
+        private float _angle    = 0f;
+        private int _gapX       = 0;
+        private int _gapY       = 0;
 
 
         public int Length
@@ -825,9 +809,9 @@ namespace CrosshairWindow.Model
             set { _thickness = Math.Max(0, value); }
         }
 
-        public ShapeEnum Shape { get; set; } = ShapeEnum.Rectangle;
+        public ShapeEnum Shape = ShapeEnum.Rectangle;
 
-        public Color Color { get; set; } = Color.White;
+        public Color Color = Color.White;
 
         public float Opacity
         {
@@ -855,12 +839,12 @@ namespace CrosshairWindow.Model
             set { _gapY = Math.Max(0, value); }
         }
 
-        public int OffsetX { get; set; } = 0;
-        public int OffsetY { get; set; } = 0;
+        public int OffsetX = 0;
+        public int OffsetY = 0;
 
-        public bool Visible { get; set; } = true;
+        public bool Visible = true;
         public Dictionary<Direction, bool> DirectionMap { get; } = new();
-        public Outline Outline { get; set; } = new();
+        public Outline Outline = new();
 
 
 
@@ -949,9 +933,9 @@ namespace CrosshairWindow.Model
                         {
                             Brush brush = new SolidBrush(Color);
 
-                            //Origin = centriod of equilateral triangle
-                            //centriod to bottom Y: y -= tan(30) * width / 2
-                            //centriod to top    Y: y += width / ( 3^(1/2) )
+                            //Origin = centroid of equilateral triangle
+                            //centroid to bottom Y: y -= tan(30) * width / 2
+                            //centroid to top    Y: y += width / ( 3^(1/2) )
                             // TopY = 2 * BottomY
 
                             float topY = Length / (float)Math.Sqrt(3.0F);
@@ -961,7 +945,7 @@ namespace CrosshairWindow.Model
                             {
                                 new(-Length / 2, -(int)bottomY),
                                 new( Length / 2, -(int)bottomY),
-                                new(         0,  (int)topY)
+                                new(         0,  +(int)topY)
                             };
 
 
@@ -988,13 +972,13 @@ namespace CrosshairWindow.Model
                     case ShapeEnum.Circle:
                         {
                             Brush brush = new SolidBrush(Color);
-                            var rectangleElipse = new Rectangle(-Length / 2, -Thickness / 2, Length, Thickness);
+                            var rectangleEllipse = new Rectangle(-Length / 2, -Thickness / 2, Length, Thickness);
 
 
-                            graphics.FillEllipse(brush, rectangleElipse);
+                            graphics.FillEllipse(brush, rectangleEllipse);
 
                             if (Outline.Visible)
-                                graphics.DrawEllipse(outlinePen, rectangleElipse);
+                                graphics.DrawEllipse(outlinePen, rectangleEllipse);
 
                         }
                         break;
