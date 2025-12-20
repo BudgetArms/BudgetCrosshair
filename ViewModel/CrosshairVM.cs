@@ -218,7 +218,6 @@ namespace CrosshairTest2.ViewModel
             //CurrentCrosshair = new Crosshair("MyCrosshair", crossSettings.GetSettings(), "Resources/Crosshair_1.png");
 
 
-
 		}
 
 
